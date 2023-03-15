@@ -35,14 +35,15 @@ export default async function (req, res) {
       presence_penalty: 0.0,
       presence_penalty: 0.0
     });
-    const responseText = completion.data.choices[0].text?.trim();
-    const responseFields = responseText
-    .replaceAll('\n',',')
-    .split(',')
-    .map(i => i.split(':')
-    .map(ii => ii.trim()));
-    console.log(responseFields);
-    res.status(200).json({ results : { text: responseText, fields: responseFields }} );
+    const _text = completion.data.choices[0].text;
+    const results = JSON.parse(_text);
+    // const responseFields = responseText
+    // .replaceAll('\n',',')
+    // .split(',')
+    // .map(i => i.split(':')
+    // .map(ii => ii.trim()));
+    // console.log(responseFields);
+    res.status(200).json({ results } );
   } catch(error) {
     // Consider adjusting the error handling logic for your use case
     if (error.response) {
@@ -60,5 +61,5 @@ export default async function (req, res) {
 }
 
 function generatePrompt(text) {
-  return `Extract information from "${text.replaceAll('\n', ',')}"`
+  return `Extract information from "${text.replaceAll('\n', ',')}" into raw json without new line and escape characters`
 }

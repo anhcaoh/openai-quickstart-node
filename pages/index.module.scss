@@ -74,6 +74,10 @@
     font-weight: bold;
     text-align: center;
     text-transform: uppercase;
+    &:disabled{
+      cursor: not-allowed;
+      opacity: .5;
+    }
   }
   button:focus{
     opacity: 0.8;

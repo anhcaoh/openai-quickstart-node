@@ -1,15 +1,15 @@
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./index.module.scss";
 export default function Home() {
   const [formInfo, setFormInfo] = useState("");
   const [results, setResults] = useState();
-  const [fields, setFields] = useState();
+  const [json, setJson] = useState(null);
   const [committed, setCommit] = useState(false);
   async function onCommit(event) {
     event.preventDefault();
-    console.log(fields);
     setCommit(true);
+    console.log(json);
   }
   async function onSubmit(event) {
     event.preventDefault();
@@ -26,8 +26,7 @@ export default function Home() {
         throw data.error || new Error(`Request failed with status ${response.status}`);
       }
       setResults(data.results);
-      setFields(data.results?.fields);
-      console.log(data.results);
+      setJson(data.results);
     } catch(error) {
       // Consider implementing your own error handling logic here
       console.error(error);
@@ -37,20 +36,20 @@ export default function Home() {
   
   const onChangeContentEditable = (e) => {
     const name = e.target.id;
-    const index = e.target.getAttribute('index');
     const value = e.target.innerHTML;
-    const _newFields = [...fields];
-    _newFields[index] = [name, value];
-    setFields(_newFields);
+    setJson({
+      ...results,
+      [name]:value
+    });
   }
 
   useEffect(() => {
-    if(fields?.length) { 
+    if(results) { 
       setTimeout(() =>{
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); 
       });
     }   
-  }, [fields, committed]);
+  }, [results]);
 
   return (
     <div>
@@ -83,17 +82,17 @@ export default function Home() {
           <button type="submit" className={styles.buttonSubmit}>Feeling motivated!</button>
         </form>
         <div className={styles.typingContainer} arial-label={results?.text}>
-          {results?.fields?.length && (<>
+          {results && (<>
           <h3>Is <span className={styles.contentEditable}>this</span> correct?</h3>
           <div className={styles.fields}>
-            {results?.fields.map((field, index) => {
-            const name = field[0];
-            const value = field[1];
+            {Object.entries(results)?.map((entry, index) => {
+            const name = entry[0],
+            value = entry[1];
             return (
-            <div key={name + index} id={name+index} 
+            <div key={name + index } id={name + index} 
               className={styles.result}>
               <span className={styles.fieldName}>{name}</span>
-              <span id={name} index={index} 
+              <span id={name}
               className={styles.contentEditable}
               onInput={onChangeContentEditable} contentEditable 
               >{value}</span>
@@ -102,14 +101,15 @@ export default function Home() {
           })}
           </div>
           <button type="button" className={styles.buttonPrimary} 
+          disabled={committed}
           onClick={onCommit}>{committed ? 'Submitted' :'Looks good!' }</button>
           </>
           )}
         </div>
-        {committed && (
+        {json && (
         <div className={styles.outputContainer}>
           <h3>JSON</h3>
-          <code>{JSON.stringify(fields, null, 4)}</code>
+          <code>{JSON.stringify(json, null, 4)}</code>
         </div>
         )}
       </main>
